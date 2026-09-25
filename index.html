@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ThinkBefore — AI Decision Checker</title>
+
+    <style>
+        :root {
+            --bg-color: #faf8ff;
+            --surface-color: #ffffff;
+            --primary-color: #6D28D9;
+            --primary-hover: #5B21B6;
+            --secondary-color: #8B5CF6;
+            --dark-purple: #4C1D95;
+            --light-purple: #F3E8FF;
+            --lighter-purple: #FAF5FF;
+
+            --text-main: #18112b;
+            --text-muted: #6f6780;
+            --text-soft: #958ca5;
+
+            --border-color: #ece7f4;
+            --border-purple: #ddd0f7;
+
+            --risk-low-bg: #dcfce7;
+            --risk-low-text: #166534;
+
+            --risk-med-bg: #fef3c7;
+            --risk-med-text: #92400e;
+
+            --risk-high-bg: #fee2e2;
+            --risk-high-text: #991b1b;
+
+            --radius: 16px;
+            --shadow: 0 8px 30px rgba(76, 29, 149, 0.06);
+            --shadow-hover: 0 14px 35px rgba(76, 29, 149, 0.11);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 50% -10%, rgba(139, 92, 246, 0.08), transparent 32%),
+                var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* =========================
+           NAVIGATION
+        ========================= */
+
+        header {
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid rgba(236, 231, 244, 0.9);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .nav-container {
+            max-width: 1120px;
+            margin: auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .logo:hover {
+            color: var(--dark-purple);
+            transform: translateY(-1px);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 9px 13px;
+            border-radius: 9px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+            background: var(--lighter-purple);
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 34px 24px 70px;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            padding: 32px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: var(--text-main);
+            letter-spacing: -0.4px;
+        }
+
+        h1 {
+            font-size: clamp(2.3rem, 5vw, 4rem);
+            line-height: 1.1;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 1.7rem;
+            line-height: 1.25;
+            margin-bottom: 12px;
+            font-weight: 750;
+        }
+
+        h3 {
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        /* =========================
+           BUTTONS
+        ========================= */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 22px;
+            min-height: 46px;
+            border-radius: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            border: none;
+            font-size: 0.96rem;
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(
+                135deg,
+                var(--primary-color),
+                var(--secondary-color)
+            );
+            color: white;
+            box-shadow: 0 8px 20px rgba(109, 40, 217, 0.22);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(
+                135deg,
+                var(--dark-purple),
+                var(--primary-color)
+            );
+            box-shadow: 0 12px 25px rgba(109, 40, 217, 0.28);
+        }
+
+        .btn-outline {
+            background-color: white;
+            border: 1px solid var(--border-purple);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--lighter-purple);
+            border-color: #c8b4ee;
+            box-shadow: 0 8px 20px rgba(109, 40, 217, 0.07);
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* =========================
+           FORM
+        ========================= */
+
+        textarea,
+        select,
+        input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid var(--border-color);
+            background: #fdfcff;
+            border-radius: 11px;
+            margin-bottom: 15px;
+            font-size: 0.96rem;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        textarea::placeholder,
+        input::placeholder {
+            color: #aaa2b6;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 130px;
+        }
+
+        textarea:focus,
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.10);
+        }
+
+        /* =========================
+           HOME
+        ========================= */
+
+        .hero {
+            position: relative;
+            text-align: center;
+            padding: 78px 20px 72px;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.08);
+            filter: blur(5px);
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: -1;
+        }
+
+        .hero h1 {
+            max-width: 750px;
+            margin: 0 auto 18px;
+            background: linear-gradient(
+                135deg,
+                #3b176d 0%,
+                var(--primary-color) 48%,
+                var(--secondary-color) 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            max-width: 650px;
+            margin: 0 auto 30px;
+            font-size: 1.08rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+
+        .hero .btn {
+            min-width: 180px;
+        }
+
+        .view > .card {
+            animation: fadeUp 0.35s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .grid-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 28px;
+        }
+
+        .step-card {
+            text-align: left;
+            padding: 23px 20px;
+            background: linear-gradient(
+                180deg,
+                #ffffff,
+                #fcfaff
+            );
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            transition: all 0.25s ease;
+            min-height: 175px;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-purple);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .step-number {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            background: var(--light-purple);
+            border: 1px solid #e7d8fa;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+
+        .step-card strong {
+            display: block;
+            font-size: 0.98rem;
+            margin-bottom: 7px;
+            color: var(--text-main);
+        }
+
+        .step-card p {
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin-bottom: 0;
+        }
+
+        /* =========================
+           AUTH
+        ========================= */
+
+        .auth-card {
+            max-width: 500px;
+            margin: 50px auto;
+        }
+
+        .auth-screen {
+            max-width: 500px;
+            margin: 70px auto;
+            text-align: center;
+        }
+
+        .auth-screen h1 {
+            font-size: 2.7rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .auth-screen h2 {
+            font-size: 1.45rem;
+            margin-bottom: 10px;
+        }
+
+        .auth-screen > p {
+            max-width: 390px;
+            margin: 0 auto 25px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .auth-buttons button {
+            flex: 1;
+        }
+
+        .auth-form {
+            text-align: left;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .auth-form h3 {
+            margin-bottom: 15px;
+        }
+
+        .auth-message {
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* =========================
+           RESULT
+        ========================= */
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 13px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            margin-bottom: 15px;
+            border: 1px solid transparent;
+        }
+
+        .risk-high {
+            background-color: var(--risk-high-bg);
+            color: var(--risk-high-text);
+            border-color: #fecaca;
+        }
+
+        .risk-med {
+            background-color: var(--risk-med-bg);
+            color: var(--risk-med-text);
+            border-color: #fde68a;
+        }
+
+        .risk-low {
+            background-color: var(--risk-low-bg);
+            color: var(--risk-low-text);
+            border-color: #bbf7d0;
+        }
+
+        .decision-box {
+            background: linear-gradient(
+                135deg,
+                #faf7ff,
+                #f8f5fc
+            );
+            border: 1px solid var(--border-purple);
+            padding: 20px;
+            border-radius: 13px;
+            margin: 24px 0 28px;
+        }
+
+        .decision-box strong {
+            color: var(--primary-color);
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .decision-box p {
+            color: var(--text-main);
+            margin-bottom: 0;
+        }
+
+        .result-section {
+            margin-bottom: 22px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-section h3 {
+            margin-bottom: 12px;
+        }
+
+        .result-section ul {
+            padding-left: 22px;
+            color: var(--text-muted);
+        }
+
+        .result-section li {
+            margin-bottom: 8px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .button-row button {
+            flex: 1;
+        }
+
+        /* =========================
+           HISTORY
+        ========================= */
+
+        #view-history > h2 {
+            margin-bottom: 5px;
+        }
+
+        #view-history > p {
+            margin-bottom: 22px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s ease;
+        }
+
+        .history-item:hover {
+            background: var(--lighter-purple);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-title {
+            font-weight: 650;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .history-date {
+            font-size: 0.82rem;
+            color: var(--text-soft);
+        }
+
+        .history-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .small-btn {
+            padding: 7px 10px;
+            border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+        }
+
+        .small-btn:hover {
+            background: var(--lighter-purple);
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 45px 25px;
+            color: var(--text-muted);
+        }
+
+        .empty-history p {
+            margin-bottom: 0;
+        }
+
+        /* =========================
+           PROFILE
+        ========================= */
+
+        .profile-info {
+            margin: 25px 0;
+            padding: 20px;
+            background: var(--lighter-purple);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .profile-info p {
+            margin-bottom: 9px;
+        }
+
+        .profile-info p:last-child {
+            margin-bottom: 0;
+        }
+
+        .profile-info strong {
+            color: var(--text-main);
+        }
+
+        /* =========================
+           CHECKER
+        ========================= */
+
+        #view-checker .card {
+            max-width: 760px;
+            margin: 25px auto;
+        }
+
+        #view-checker h2 {
+            font-size: 1.8rem;
+        }
+
+        #view-checker .card > p {
+            margin-bottom: 24px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 850px) {
+
+            .grid-steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 768px) {
+
+            .container {
+                padding: 25px 17px 55px;
+            }
+
+            .nav-container {
+                padding: 14px 17px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 58px 8px 55px;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            h1 {
+                font-size: 2.25rem;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 18px;
+            }
+
+            .history-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+        }
+
+        @media (max-width: 520px) {
+
+            .grid-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .step-card {
+                min-height: auto;
+            }
+
+            .card {
+                padding: 21px;
+                border-radius: 14px;
+            }
+
+            .auth-screen {
+                margin: 35px auto;
+            }
+
+            .auth-screen h1 {
+                font-size: 2.3rem;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+            }
+
+            .hero {
+                padding-top: 45px;
+            }
+
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+
+            .hero .btn {
+                width: 100%;
+            }
+
+            .profile-info {
+                padding: 17px;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+
+    <header>
+        <div class="nav-container">
+
+            <div class="logo" onclick="navigate('home')">
+                ThinkBefore
+            </div>
+
+            <nav class="nav-links">
+                <a onclick="navigate('home')">Home</a>
+                <a onclick="navigate('checker')">Check Decision</a>
+                <a onclick="navigate('history')">History</a>
+                <a onclick="navigate('profile')">Profile</a>
+            </nav>
+
+        </div>
+    </header>
+
+
+
+    <!-- AUTH SCREEN -->
+
+    <main id="auth-screen" class="container">
+
+        <div class="card auth-screen">
+
+            <h1>ThinkBefore</h1>
+
+            <h2>Think before you act.</h2>
+
+            <p>
+                Create an account or login to continue to your AI decision assistant.
+            </p>
+
+            <div class="auth-buttons">
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showAuthForm('login')">
+                    Login
+                </button>
+
+                <button
+                    class="btn btn-outline"
+                    onclick="showAuthForm('register')">
+                    Register
+                </button>
+
+            </div>
+
+            <div id="login-form" class="auth-form">
+
+                <h3>Login</h3>
+
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="Enter your email">
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Enter your password">
+
+                <button
+                    class="btn btn-primary btn-full"
+                    onclick="loginUser()">
+                    Login
+                </button>
+
+                <p id="loginMessage" class="auth-message"></p>
+
+            </div>
+
+
+            <div id="register-form" class="auth-form hidden">
+
+                <h3>Create Account</h3>
+
+                <input
+                    type="text"
+                    id="registerName"
+                    placeholder="Enter your name">
+
+                <input
+                    type="email"
+                    id="registerEmail"
+                    placeholder="Enter your email">
+
+                <input
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Create a password">
+
+                <button
+                    class="btn btn-primary btn-full"
+                    onclick="registerUser()">
+                    Create Account
+                </button>
+
+                <p id="registerMessage" class="auth-message"></p>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- MAIN -->
+
+    <main id="app-screen" class="container hidden">
+
+
+        <!-- HOME PAGE -->
+
+        <div id="view-home" class="view">
+
+            <div class="hero">
+
+                <h1>Think before you act.</h1>
+
+                <p>
+                    An AI decision assistant that helps you pause,
+                    identify risks, verify important details,
+                    and choose safer options.
+                </p>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="navigate('checker')">
+                    Check a Decision
+                </button>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>How It Works</h2>
+
+                <div class="grid-steps">
+
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <strong>Enter Situation</strong>
+                        <p>Tell us what you are thinking about.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <strong>AI Analysis</strong>
+                        <p>AI looks for possible risks.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <strong>Risk Level</strong>
+                        <p>Understand the level of concern.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <strong>Safer Choice</strong>
+                        <p>Get things to verify and alternatives.</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CHECKER PAGE -->
+
+        <div id="view-checker" class="view hidden">
+
+            <div class="card">
+
+                <h2>What are you thinking about?</h2>
+
+                <p>
+                    Describe the situation, message, website,
+                    purchase, or decision you are facing.
+                </p>
+
+                <textarea
+                    id="decisionInput"
+                    rows="7"
+                    placeholder="Example: I received an email asking me to click a link and enter my bank password. Is it safe?"></textarea>
+
+
+                <select id="categoryInput">
+
+                    <option value="">
+                        Select a Category (Optional)
+                    </option>
+
+                    <option value="Online Safety">
+                        Online Safety / Scams
+                    </option>
+
+                    <option value="Money">
+                        Money & Purchases
+                    </option>
+
+                    <option value="Social">
+                        Social Media & Messages
+                    </option>
+
+                    <option value="Study">
+                        Study & Work
+                    </option>
+
+                    <option value="Personal">
+                        Personal Decision
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+
+                <button
+                    class="btn btn-primary btn-full"
+                    onclick="checkDecision()">
+                    Check with AI
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESULT PAGE -->
+
+        <div id="view-result" class="view hidden">
+
+            <div class="card">
+
+                <span
+                    id="riskBadge"
+                    class="risk-badge risk-med">
+                    Medium Risk
+                </span>
+
+                <h2>AI Analysis Complete</h2>
+
+
+                <div class="decision-box">
+
+                    <strong>Your Decision:</strong>
+
+                    <p
+                        id="resultDecision"
+                        style="margin-top: 8px;">
+                    </p>
+
+                </div>
+
+
+                <div class="result-section">
+
+                    <h3>Possible Concerns</h3>
+
+                    <ul id="concernsList">
+                    </ul>
+
+                </div>
+
+
+                <div class="result-section">
+
+                    <h3>Things to Verify</h3>
+
+                    <ul id="verifyList">
+                    </ul>
+
+                </div>
+
+
+                <div class="result-section">
+
+                    <h3>Safer Alternative</h3>
+
+                    <p id="saferAlternative">
+                    </p>
+
+                </div>
+
+
+                <div class="result-section">
+
+                    <h3>Why?</h3>
+
+                    <p id="whyText">
+                    </p>
+
+                </div>
+
+
+                <div class="button-row">
+
+                    <button
+                        id="saveButton"
+                        class="btn btn-outline"
+                        onclick="saveDecision()">
+                        Save Decision
+                    </button>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="navigate('checker')">
+                        Check Another
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- HISTORY PAGE -->
+
+        <div id="view-history" class="view hidden">
+
+            <h2>Your History</h2>
+
+            <p>
+                Your saved decisions are stored in MySQL database.
+            </p>
+
+            <input
+                type="text"
+                id="historySearch"
+                placeholder="Search past decisions..."
+                oninput="displayHistory()">
+
+
+            <div class="card" style="padding: 0;">
+
+                <div id="historyContainer">
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PROFILE PAGE -->
+
+        <div id="view-profile" class="view hidden">
+
+            <div class="card">
+
+                <h2>Your Profile</h2>
+
+                <div class="profile-info">
+
+                    <p>
+                        <strong>Name:</strong>
+                        <span id="profileName">Student</span>
+                    </p>
+
+                    <p>
+                        <strong>Email:</strong>
+                        <span id="profileEmail">student@example.com</span>
+                    </p>
+
+                </div>
+
+                <hr
+                    style="
+                    border: 0;
+                    border-top: 1px solid var(--border-color);
+                    margin-bottom: 20px;
+                    ">
+
+                <button
+                    class="btn btn-outline btn-full"
+                    onclick="logoutUser()">
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        /* =========================
+           GLOBAL VARIABLES
+        ========================= */
+
+        let currentDecision = null;
+
+
+
+        /* =========================
+           AUTHENTICATION
+        ========================= */
+
+        function showAuthForm(type) {
+
+            document.getElementById("login-form").classList.add("hidden");
+            document.getElementById("register-form").classList.add("hidden");
+
+            document.getElementById("loginMessage").textContent = "";
+            document.getElementById("registerMessage").textContent = "";
+
+            if (type === "login") {
+                document.getElementById("login-form").classList.remove("hidden");
+            } else {
+                document.getElementById("register-form").classList.remove("hidden");
+            }
+        }
+
+
+        async function registerUser() {
+
+            const name = document.getElementById("registerName").value.trim();
+            const email = document.getElementById("registerEmail").value.trim();
+            const password = document.getElementById("registerPassword").value;
+            const message = document.getElementById("registerMessage");
+
+            if (!name || !email || !password) {
+                message.textContent = "Please fill all fields.";
+                message.style.color = "#dc2626";
+                return;
+            }
+
+            try {
+
+                const response = await fetch("/register", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    message.textContent = data.error || "Registration failed.";
+                    message.style.color = "#dc2626";
+                    return;
+                }
+
+                message.textContent =
+                    "Registration successful! You can now login.";
+
+                message.style.color = "#059669";
+
+                document.getElementById("registerName").value = "";
+                document.getElementById("registerEmail").value = "";
+                document.getElementById("registerPassword").value = "";
+
+                setTimeout(function () {
+                    showAuthForm("login");
+                }, 1000);
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "Could not connect to Flask backend.";
+
+                message.style.color = "#dc2626";
+            }
+        }
+
+
+        async function loginUser() {
+
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+            const message = document.getElementById("loginMessage");
+
+            if (!email || !password) {
+                message.textContent = "Please enter email and password.";
+                message.style.color = "#dc2626";
+                return;
+            }
+
+            try {
+
+                const response = await fetch("/login", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    message.textContent = data.error || "Invalid email or password.";
+                    message.style.color = "#dc2626";
+                    return;
+                }
+
+                localStorage.setItem(
+                    "thinkBeforeUser",
+                    JSON.stringify(data.user)
+                );
+
+                openApp(data.user);
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "Could not connect to Flask backend.";
+
+                message.style.color = "#dc2626";
+            }
+        }
+
+
+        function openApp(user) {
+
+            document.getElementById("auth-screen").classList.add("hidden");
+            document.getElementById("app-screen").classList.remove("hidden");
+
+            document.getElementById("profileName").textContent =
+                user.name || "Student";
+
+            document.getElementById("profileEmail").textContent =
+                user.email || "";
+
+            navigate("home");
+        }
+
+
+        async function logoutUser() {
+
+            try {
+                await fetch("/logout", {
+                    method: "POST",
+                    credentials: "same-origin"
+                });
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+
+            localStorage.removeItem("thinkBeforeUser");
+            currentDecision = null;
+
+            document.getElementById("app-screen").classList.add("hidden");
+            document.getElementById("auth-screen").classList.remove("hidden");
+            showAuthForm("login");
+        }
+
+
+        /* =========================
+           PAGE NAVIGATION
+        ========================= */
+
+        function navigate(viewId) {
+
+            const views =
+                document.querySelectorAll(".view");
+
+            views.forEach(function (view) {
+                view.classList.add("hidden");
+            });
+
+
+            const activeView =
+                document.getElementById("view-" + viewId);
+
+
+            if (activeView) {
+
+                activeView.classList.remove("hidden");
+
+                window.scrollTo(0, 0);
+
+            }
+
+
+            if (viewId === "history") {
+                displayHistory();
+            }
+
+        }
+
+
+        /* =========================
+           CHECK DECISION
+        ========================= */
+
+        async function checkDecision() {
+
+            const decision = document.getElementById("decisionInput").value.trim();
+            const category = document.getElementById("categoryInput").value;
+
+            if (!decision) {
+                alert("Please enter your situation first.");
+                return;
+            }
+
+            const button = document.querySelector('#view-checker button.btn-primary');
+            const oldText = button ? button.textContent : "Check with AI";
+            if (button) { button.disabled = true; button.textContent = "Analyzing..."; }
+
+            try {
+                const response = await fetch("/analyze", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ decision_text: decision, category: category || "Other" })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert("Your login session has expired. Please login again.");
+                        await logoutUser();
+                        return;
+                    }
+                    throw new Error(data.error || "AI analysis failed.");
+                }
+
+                currentDecision = {
+                    decision: decision,
+                    category: category || "Other",
+                    risk: data.risk || "Medium",
+                    concerns: Array.isArray(data.concerns) ? data.concerns : [],
+                    verify: Array.isArray(data.verify) ? data.verify : [],
+                    saferAlternative: data.saferAlternative || "Review the information carefully before acting.",
+                    why: data.why || "The AI analysis is based only on the information provided.",
+                    date: new Date().toLocaleString()
+                };
+
+                showResult();
+                navigate("result");
+            } catch (error) {
+                console.error("AI analysis error:", error);
+                alert(error.message || "Could not connect to the Flask backend.");
+            } finally {
+                if (button) { button.disabled = false; button.textContent = oldText; }
+            }
+        }
+
+
+        /* =========================
+           SHOW RESULT
+        ========================= */
+
+        function showResult() {
+
+            document.getElementById("resultDecision").textContent =
+                currentDecision.decision;
+
+
+            document.getElementById("riskBadge").textContent =
+                currentDecision.risk + " Risk";
+
+
+            const badge =
+                document.getElementById("riskBadge");
+
+
+            badge.className = "risk-badge";
+
+
+            if (currentDecision.risk === "High") {
+
+                badge.classList.add("risk-high");
+
+            }
+            else if (currentDecision.risk === "Low") {
+
+                badge.classList.add("risk-low");
+
+            }
+            else {
+
+                badge.classList.add("risk-med");
+
+            }
+
+
+            /* CONCERNS */
+
+            const concernsList =
+                document.getElementById("concernsList");
+
+            concernsList.innerHTML = "";
+
+
+            currentDecision.concerns.forEach(function (item) {
+
+                const li =
+                    document.createElement("li");
+
+                li.textContent = item;
+
+                concernsList.appendChild(li);
+
+            });
+
+
+            /* VERIFY */
+
+            const verifyList =
+                document.getElementById("verifyList");
+
+            verifyList.innerHTML = "";
+
+
+            currentDecision.verify.forEach(function (item) {
+
+                const li =
+                    document.createElement("li");
+
+                li.textContent = item;
+
+                verifyList.appendChild(li);
+
+            });
+
+
+            document.getElementById("saferAlternative").textContent =
+                currentDecision.saferAlternative;
+
+
+            document.getElementById("whyText").textContent =
+                currentDecision.why;
+
+
+            document.getElementById("saveButton").textContent =
+                "Save Decision";
+
+        }
+
+
+        /* =========================
+           SAVE DECISION
+        ========================= */
+
+        async function saveDecision() {
+
+            if (!currentDecision) {
+                alert("No decision available to save.");
+                return;
+            }
+
+            const button = document.getElementById("saveButton");
+            try {
+                button.disabled = true;
+                button.textContent = "Saving...";
+
+                const response = await fetch("/save-decision", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        decision_text: currentDecision.decision,
+                        category: currentDecision.category,
+                        risk_level: currentDecision.risk,
+                        concerns: currentDecision.concerns.join(" | "),
+                        safer_alternative: currentDecision.saferAlternative
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert("Your login session has expired. Please login again.");
+                        await logoutUser();
+                        return;
+                    }
+                    throw new Error(data.error || "Failed to save decision.");
+                }
+
+                button.textContent = "✓ Saved";
+                alert("Decision saved successfully!");
+            } catch (error) {
+                console.error("Save error:", error);
+                button.textContent = "Save Decision";
+                alert(error.message || "Could not save the decision.");
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        /* =========================
+           DISPLAY HISTORY
+        ========================= */
+
+        async function displayHistory() {
+
+            const container = document.getElementById("historyContainer");
+            const search = document.getElementById("historySearch").value.toLowerCase();
+
+            container.innerHTML = `<div class="empty-history"><p>Loading your saved decisions...</p></div>`;
+
+            try {
+                const response = await fetch("/decisions", { method: "GET", credentials: "same-origin" });
+                if (!response.ok) throw new Error("History request failed");
+                const history = await response.json();
+
+                const filteredHistory = history.filter(item =>
+                    (item.decision_text || "").toLowerCase().includes(search)
+                );
+
+                container.innerHTML = "";
+
+                if (filteredHistory.length === 0) {
+                    container.innerHTML = `<div class="empty-history"><h3>No saved decisions yet</h3><p>Your saved decisions will appear here.</p></div>`;
+                    return;
+                }
+
+                filteredHistory.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "history-item";
+
+                    let riskClass = "risk-med";
+                    if (item.risk_level === "High") riskClass = "risk-high";
+                    else if (item.risk_level === "Low") riskClass = "risk-low";
+
+                    const title = item.decision_text || "Untitled decision";
+                    const date = item.created_at ? new Date(item.created_at).toLocaleString() : "";
+
+                    div.innerHTML = `
+                        <div>
+                            <div class="history-title">${escapeHTML(title.length > 70 ? title.substring(0, 70) + "..." : title)}</div>
+                            <div class="history-date">${escapeHTML(date)} • ${escapeHTML(item.category || "General")}</div>
+                        </div>
+                        <div class="history-actions">
+                            <span class="risk-badge ${riskClass}" style="margin:0;">${escapeHTML(item.risk_level || "Medium")} Risk</span>
+                        </div>`;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="empty-history"><h3>Could not load history</h3><p>Please make sure the Flask backend is running.</p></div>`;
+            }
+        }
+
+
+        /* =========================
+           REGISTER USER
+        ========================= */
+
+
+
+        /* =========================
+           DELETE HISTORY ITEM
+        ========================= */
+
+        function deleteDecision(index) {
+
+            let history =
+                JSON.parse(
+                    localStorage.getItem("thinkBeforeHistory")
+                ) || [];
+
+
+            const confirmDelete =
+                confirm(
+                    "Do you want to delete this decision?"
+                );
+
+
+            if (!confirmDelete) {
+                return;
+            }
+
+
+            history.splice(index, 1);
+
+
+            localStorage.setItem(
+                "thinkBeforeHistory",
+                JSON.stringify(history)
+            );
+
+
+            displayHistory();
+
+        }
+
+
+        /* =========================
+           SECURITY HELPER
+        ========================= */
+
+        function escapeHTML(text) {
+
+            const div =
+                document.createElement("div");
+
+            div.textContent = text;
+
+            return div.innerHTML;
+
+        }
+
+
+        /* =========================
+           START PAGE
+        ========================= */
+
+        async function startApp() {
+            try {
+                const response = await fetch("/me", { method: "GET", credentials: "same-origin" });
+                const data = await response.json();
+
+                if (response.ok && data.logged_in && data.user) {
+                    localStorage.setItem("thinkBeforeUser", JSON.stringify(data.user));
+                    openApp(data.user);
+                } else {
+                    localStorage.removeItem("thinkBeforeUser");
+                    document.getElementById("auth-screen").classList.remove("hidden");
+                    document.getElementById("app-screen").classList.add("hidden");
+                    showAuthForm("login");
+                }
+            } catch (error) {
+                console.error("Session check error:", error);
+                localStorage.removeItem("thinkBeforeUser");
+                document.getElementById("auth-screen").classList.remove("hidden");
+                document.getElementById("app-screen").classList.add("hidden");
+                showAuthForm("login");
+            }
+        }
+
+        startApp();
+
+    </script>
+
+</body>
+
+</html>
