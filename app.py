@@ -1,6 +1,15 @@
 from flask import Flask, request, jsonify, send_from_directory, session
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
+from dotenv import load_dotenv
+
+
+# =====================================================
+# LOAD ENVIRONMENT VARIABLES
+# =====================================================
+
+load_dotenv()
 
 
 # =====================================================
@@ -10,7 +19,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 
 # Secret key for login sessions
-app.secret_key = "thinkbefore-local-secret-key"
+app.secret_key = os.getenv("SECRET_KEY")
 
 
 # =====================================================
@@ -18,10 +27,10 @@ app.secret_key = "thinkbefore-local-secret-key"
 # =====================================================
 
 db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
-    database="thinkbefore"
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
 )
 
 print("MySQL Database Connected Successfully!")
@@ -33,7 +42,11 @@ print("MySQL Database Connected Successfully!")
 
 @app.route("/")
 def home():
-    return send_from_directory(".", "index.html")
+
+    return send_from_directory(
+        ".",
+        "index.html"
+    )
 
 
 # =====================================================
@@ -81,7 +94,9 @@ def register():
             }), 409
 
         # Hash password before storing
-        hashed_password = generate_password_hash(password)
+        hashed_password = generate_password_hash(
+            password
+        )
 
         # Insert user
         cursor.execute(
@@ -98,6 +113,7 @@ def register():
         )
 
         db.commit()
+
         cursor.close()
 
         return jsonify({
@@ -106,7 +122,10 @@ def register():
 
     except Exception as e:
 
-        print("REGISTER ERROR:", e)
+        print(
+            "REGISTER ERROR:",
+            e
+        )
 
         return jsonify({
             "error": "Registration failed."
@@ -134,7 +153,9 @@ def login():
                 "error": "Email and password are required."
             }), 400
 
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(
+            dictionary=True
+        )
 
         # Find user
         cursor.execute(
@@ -169,7 +190,6 @@ def login():
 
         password_correct = False
 
-        # First try hashed password
         try:
 
             password_correct = check_password_hash(
@@ -185,11 +205,18 @@ def login():
         # OLD PLAIN TEXT PASSWORD SUPPORT
         # =================================================
 
-        if not password_correct and stored_password == password:
+        if (
+            not password_correct
+            and stored_password == password
+        ):
 
-            print("Old plain-text password detected.")
+            print(
+                "Old plain-text password detected."
+            )
 
-            new_password = generate_password_hash(password)
+            new_password = generate_password_hash(
+                password
+            )
 
             cursor = db.cursor()
 
@@ -206,6 +233,7 @@ def login():
             )
 
             db.commit()
+
             cursor.close()
 
             password_correct = True
@@ -247,7 +275,10 @@ def login():
 
     except Exception as e:
 
-        print("LOGIN ERROR:", e)
+        print(
+            "LOGIN ERROR:",
+            e
+        )
 
         return jsonify({
             "error": "Login failed."
@@ -467,6 +498,7 @@ def save_decision():
         )
 
         db.commit()
+
         cursor.close()
 
         print(
@@ -510,14 +542,8 @@ def get_decisions():
             dictionary=True
         )
 
-        # =================================================
-        # GET ALL SAVED DECISIONS FROM MYSQL
-        #
-        # IMPORTANT:
-        # No UPDATE
-        # No DELETE
-        # No changes to existing records
-        # =================================================
+        # Get ALL saved decisions from MySQL
+        # Existing records are not modified or deleted
 
         cursor.execute(
             """
@@ -565,7 +591,9 @@ def get_decisions():
 
 if __name__ == "__main__":
 
-    print("Starting ThinkBefore...")
+    print(
+        "Starting ThinkBefore..."
+    )
 
     app.run(
         debug=True
